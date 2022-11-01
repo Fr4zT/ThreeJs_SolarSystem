@@ -3,11 +3,9 @@ import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/exampl
 import { EffectComposer } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/postprocessing/UnrealBloomPass.js';
-import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/loaders/FontLoader.js';
-import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/geometries/TextGeometry.js';
+import {GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.145.0/examples/jsm/loaders/GLTFLoader.js';
 
 import { joinRoom } from 'https://cdn.skypack.dev/trystero';
-import { BoxGeometry } from 'three';
 
 let renderer, camera, scene;
 let bloomComposer, bloomPass;
@@ -23,6 +21,8 @@ const config = { appId: 'fraz_solarSystem' };
 let room;
 
 let planetFollowing = null;
+
+const loader = new GLTFLoader();
 
 function init() {
     const canvas = document.getElementById("threeCanvas");
@@ -64,8 +64,15 @@ function init() {
         const playerGeomerty = new THREE.BoxGeometry(5, 5, 5, 1, 1, 1);
         const playerMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const playerMesh = new THREE.Mesh(playerGeomerty, playerMaterial);
-        scene.add(playerMesh);
-        players[peerId] = playerMesh;
+        let playerObject = new THREE.Object3D();
+        scene.add(playerObject);
+        players[peerId] = playerObject;
+        loader.load(
+            'Models/ufo.glb',
+            function ( gltf ) {
+                playerObject.add(gltf.scene);
+            },
+        );
     })
 
     room.onPeerLeave(peerId => {
@@ -128,7 +135,8 @@ function animate() {
     for (let i = 0; i < planetCenters.length; i++) {
         planetCenters[i].center.rotation.y += planetCenters[i].orbitalSpeed * 0.0001;
     }
-    if (planetFollowing != null) {
+    if (planetFollowing != null)
+    {
         let worldPos = new THREE.Vector3();
         planetFollowing.getWorldPosition(worldPos);
         controls.target = worldPos;
